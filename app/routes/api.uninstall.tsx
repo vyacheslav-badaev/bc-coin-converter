@@ -6,6 +6,7 @@ import createError from 'http-errors';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
+    //GET BC queries from request
     const queries = fetchQueriesFromRequest(request);
     const session = await getBCVerify(queries);
     await removeDataStore(session);

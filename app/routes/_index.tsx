@@ -23,6 +23,13 @@ export default function Index() {
     <div className="page">
       <h1>My Blog</h1>
       <main>{message}</main>
+      <button
+        onClick={() => {
+          fetcher.load('/api');
+        }}
+      >
+        refetch
+      </button>
     </div>
   );
 }

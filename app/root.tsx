@@ -16,33 +16,35 @@ import {
 import { fetchQueriesFromRequest } from './lib/utils';
 import { bigCommerceSDK } from './lib/bc-sdk';
 import { useEffect } from 'react';
+import { getContextFromCookies } from './lib/auth';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 export const links: LinksFunction = () => [
   ...(cssBundleHref ? [{ rel: 'stylesheet', href: cssBundleHref }] : []),
 ];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { context: jwtToken = '' } = fetchQueriesFromRequest(request);
+  const context = await getContextFromCookies(request);
   return json({
-    jwtToken,
+    context,
   });
 }
 
 export default function App() {
   const data = useLoaderData<typeof loader>();
-  let outlet = !data.jwtToken ? (
-    <h1 className="error">Token is not provided</h1>
+  let outlet = !data.context ? (
+    <h1 className="error">Context session is not provided.Try reopen app</h1>
   ) : (
     <Outlet context={data} />
   );
 
   useEffect(() => {
-    if (data.jwtToken) {
-      console.log('data.jwtToken init', data.jwtToken);
+    if (data.context) {
+      console.log('data.context init', data.context);
       // Keeps app in sync with BC (e.g. heatbeat, user logout, etc)
-      bigCommerceSDK(data.jwtToken);
+      bigCommerceSDK();
     }
-  }, [data.jwtToken]);
+  }, [data.context]);
 
   return (
     <html lang="en">
@@ -53,7 +55,7 @@ export default function App() {
         <Links />
       </head>
       <body>
-        {outlet}
+        <ErrorBoundary>{outlet}</ErrorBoundary>
         <ScrollRestoration />
         <Scripts />
         <LiveReload />

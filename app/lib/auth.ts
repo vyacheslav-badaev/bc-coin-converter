@@ -1,16 +1,27 @@
 import jwt from 'jsonwebtoken';
+import { createCookieSessionStorage } from '@remix-run/node';
 //@ts-ignore
 import BigCommerce from 'node-bigcommerce';
 import { prisma } from './prisma';
 import type {
   ApiConfig,
+  CookiesData,
+  CookiesFlashData,
   QueryParams,
   SessionContextProps,
   SessionProps,
 } from '../types';
+import createError from 'http-errors';
 
-const { API_URL, AUTH_CALLBACK, CLIENT_ID, CLIENT_SECRET, JWT_KEY, LOGIN_URL } =
-  process.env;
+const {
+  API_URL,
+  AUTH_CALLBACK,
+  CLIENT_ID,
+  CLIENT_SECRET,
+  JWT_KEY,
+  LOGIN_URL,
+  COOKIE_KEY,
+} = process.env;
 
 // Used for internal configuration; 3rd party apps may remove
 const apiConfig: ApiConfig = {};
@@ -137,22 +148,32 @@ export async function setSession(session: SessionProps) {
 }
 
 export function decodePayload(encodedContext: string) {
-  return jwt.verify(encodedContext, JWT_KEY);
+  return jwt.verify(encodedContext, JWT_KEY as string);
 }
 
 export function encodePayload({ user, owner, ...session }: SessionProps) {
   const contextString = session?.context ?? session?.sub;
   const context = contextString.split('/')[1] || '';
 
-  return jwt.sign({ context, user, owner }, JWT_KEY, { expiresIn: '24h' });
+  return jwt.sign({ context, user, owner }, JWT_KEY as string, {
+    expiresIn: '24h',
+  });
 }
 
 export async function getSession(
   context = '',
 ): Promise<SessionContextProps | null> {
-  if (typeof context !== 'string') return null;
-  const { context: storeHash, user } = decodePayload(context);
-  const hasUser = await hasStoreUser(storeHash, user?.id);
+  if (!context) {
+    throw createError.Unauthorized('Unauthorized');
+  }
+  const payload = decodePayload(context);
+  if (!payload) {
+    throw createError.Unauthorized('Unauthorized');
+  }
+  const { context: storeHash, user } = payload as SessionProps;
+  console.log('storeHash', storeHash);
+  console.log('user', user);
+  const hasUser = await hasStoreUser(storeHash, user.id);
 
   // Before retrieving session/ hitting APIs, check user
   if (!hasUser) {
@@ -174,11 +195,11 @@ export async function deleteStoreUser({ context, user, sub }: SessionProps) {
   });
 }
 
-export async function hasStoreUser(storeHash: string, userId: string) {
+export async function hasStoreUser(storeHash: string, userId: number) {
   if (!storeHash || !userId) return false;
 
   const storeUser = await prisma.storeUser.findFirst({
-    where: { storeHash, userId: +userId },
+    where: { storeHash, userId: userId },
   });
 
   return !!storeUser;
@@ -217,4 +238,32 @@ export async function removeDataStore(session: SessionProps) {
 export async function logoutUser({ storeHash, user }: SessionContextProps) {
   const session = { context: `store/${storeHash}`, user };
   await deleteStoreUser(session);
+}
+
+const {
+  getSession: getCookies,
+  commitSession: commitCookies,
+  destroySession: destroyCookies,
+} = createCookieSessionStorage<CookiesData, CookiesFlashData>({
+  // a Cookie from `createCookie` or the CookieOptions to create one
+  cookie: {
+    name: '__app__session',
+    httpOnly: true,
+    maxAge: 86400,
+    path: '/',
+    sameSite: 'none',
+    secrets: [COOKIE_KEY as string],
+    secure: true,
+  },
+});
+
+export { getCookies, commitCookies, destroyCookies };
+
+export async function getContextFromCookies(request: Request) {
+  const cookies = await getCookies(request.headers.get('Cookie'));
+  let context = '';
+  if (cookies.has('context')) {
+    context = cookies.get('context') as string;
+  }
+  return context;
 }

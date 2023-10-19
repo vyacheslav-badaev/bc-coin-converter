@@ -29,3 +29,11 @@ export interface ApiConfig {
   apiUrl?: string;
   loginUrl?: string;
 }
+
+export type CookiesData = {
+  context: string;
+};
+
+export type CookiesFlashData = {
+  error: string;
+};

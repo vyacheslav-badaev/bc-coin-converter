@@ -1,4 +1,4 @@
-export function bigCommerceSDK(context) {
+export function bigCommerceSDK() {
   if (typeof window === 'undefined') return;
 
   const s = 'script';
@@ -21,7 +21,7 @@ export function bigCommerceSDK(context) {
     //@ts-ignore
     window?.Bigcommerce?.init({
       onLogout: function () {
-        fetch(`/api/logout?context=${context}`);
+        fetch(`/api/logout`);
       },
     });
   };
