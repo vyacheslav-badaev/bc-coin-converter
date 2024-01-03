@@ -1,6 +1,6 @@
 import { json } from '@remix-run/node';
 import type { LoaderFunctionArgs } from '@remix-run/node';
-import { getBCVerify, removeDataStore } from '~/lib/auth';
+import { getBCVerify, removeDataStore } from '~/lib/auth.server';
 import { fetchQueriesFromRequest } from '~/lib/utils';
 import createError from 'http-errors';
 

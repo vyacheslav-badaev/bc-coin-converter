@@ -6,7 +6,7 @@ import {
   getBCAuth,
   getCookies,
   setSession,
-} from '~/lib/auth';
+} from '~/lib/auth.server';
 import { fetchQueriesFromRequest } from '~/lib/utils';
 import createError from 'http-errors';
 /*

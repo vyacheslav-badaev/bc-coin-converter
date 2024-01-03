@@ -7,7 +7,7 @@ import {
   getCookies,
   getSession,
   logoutUser,
-} from '~/lib/auth';
+} from '~/lib/auth.server';
 import { fetchQueriesFromRequest } from '~/lib/utils';
 import type { SessionContextProps } from '~/types';
 import createError from 'http-errors';

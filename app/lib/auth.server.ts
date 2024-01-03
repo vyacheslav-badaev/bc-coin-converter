@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import { createCookieSessionStorage } from '@remix-run/node';
 //@ts-ignore
 import BigCommerce from 'node-bigcommerce';
-import { prisma } from './prisma';
+import { prisma } from './prisma.server';
 import type {
   ApiConfig,
   CookiesData,
@@ -164,11 +164,11 @@ export async function getSession(
   context = '',
 ): Promise<SessionContextProps | null> {
   if (!context) {
-    throw createError.Unauthorized('Unauthorized');
+    throw createError.Unauthorized('Unauthorized. Session not provided.');
   }
   const payload = decodePayload(context);
   if (!payload) {
-    throw createError.Unauthorized('Unauthorized');
+    throw createError.Unauthorized('Unauthorized. Session not found.');
   }
   const { context: storeHash, user } = payload as SessionProps;
   console.log('storeHash', storeHash);
@@ -177,9 +177,7 @@ export async function getSession(
 
   // Before retrieving session/ hitting APIs, check user
   if (!hasUser) {
-    throw new Error(
-      'User is not available. Please login or ensure you have access permissions.',
-    );
+    throw createError.Unauthorized('Unauthorized. User not found.');
   }
 
   const accessToken = (await getStoreToken(storeHash)) || '';

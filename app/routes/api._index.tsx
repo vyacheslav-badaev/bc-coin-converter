@@ -4,7 +4,7 @@ import {
   getContextFromCookies,
   getCookies,
   getSession,
-} from '~/lib/auth';
+} from '~/lib/auth.server';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   //GET get context from cookies and load session

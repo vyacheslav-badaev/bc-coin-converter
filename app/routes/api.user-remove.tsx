@@ -2,7 +2,7 @@ import { json } from '@remix-run/node';
 import type { LoaderFunctionArgs } from '@remix-run/node';
 import { fetchQueriesFromRequest } from '~/lib/utils';
 import createError from 'http-errors';
-import { getBCVerify, removeDataStore } from '~/lib/auth';
+import { getBCVerify, removeDataStore } from '~/lib/auth.server';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {

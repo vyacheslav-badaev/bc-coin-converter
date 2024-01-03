@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `Store` MODIFY `scope` VARCHAR(2064) NOT NULL;

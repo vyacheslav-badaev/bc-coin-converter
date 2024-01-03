@@ -1,4 +1,3 @@
-import { cssBundleHref } from '@remix-run/css-bundle';
 import {
   json,
   type LinksFunction,
@@ -13,29 +12,42 @@ import {
   ScrollRestoration,
   useLoaderData,
 } from '@remix-run/react';
-import { fetchQueriesFromRequest } from './lib/utils';
 import { bigCommerceSDK } from './lib/bc-sdk';
 import { useEffect } from 'react';
-import { getContextFromCookies } from './lib/auth';
+import { getContextFromCookies, getSession } from './lib/auth.server';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import createError from 'http-errors';
+import { GlobalStyles } from '@bigcommerce/big-design';
+import styles from '~/styles/global.css';
 
 export const links: LinksFunction = () => [
-  ...(cssBundleHref ? [{ rel: 'stylesheet', href: cssBundleHref }] : []),
+  { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+  {
+    rel: 'stylesheet',
+    href: 'https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@200;300;400;600&display=swap',
+  },
+  { rel: 'stylesheet', href: styles },
 ];
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const context = await getContextFromCookies(request);
+  const session = await getSession(context);
+  if (!session?.user) {
+    throw createError.Forbidden('No session found');
+  }
+
   return json({
     context,
+    session: session.user,
   });
 }
 
 export default function App() {
   const data = useLoaderData<typeof loader>();
   let outlet = !data.context ? (
-    <h1 className="error">Context session is not provided.Try reopen app</h1>
+    <h1 className="error">Context session is not provided</h1>
   ) : (
-    <Outlet context={data} />
+    <Outlet />
   );
 
   useEffect(() => {
@@ -51,6 +63,7 @@ export default function App() {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <GlobalStyles />
         <Meta />
         <Links />
       </head>

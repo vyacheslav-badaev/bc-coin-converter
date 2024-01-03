@@ -13,6 +13,7 @@
     "seed": "tsc prisma/seed.ts && mv prisma/seed.js prisma/seed.cjs && node prisma/seed.cjs && rm prisma/seed.cjs"
   },
   "dependencies": {
+    "@bigcommerce/big-design": "^0.38.1",
     "@prisma/client": "5.4.2",
     "@remix-run/css-bundle": "^2.0.1",
     "@remix-run/node": "^2.0.1",
@@ -24,7 +25,8 @@
     "marked": "9.1.1",
     "node-bigcommerce": "github:bigcommerce/node-bigcommerce",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "styled-components": "^5.3.11"
   },
   "devDependencies": {
     "@remix-run/dev": "^2.0.1",

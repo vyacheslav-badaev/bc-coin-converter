@@ -21,7 +21,8 @@ model Store {
   id    Int         @id @default(autoincrement())
   storeHash String  @unique
   accessToken String 
-  scope String 
+  scope String @db.VarChar(2064)
+  scriptTagId String?
 }
 
 model StoreUser {
